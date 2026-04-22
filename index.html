@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#dc2626">
+    <title>Facciamo Rete V3 - Prenota i Tuoi Campi</title>
+    
+    <!-- SUPABASE LIBRARY - IMPORTANTE! -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #dc2626;
+            --primary-dark: #991b1b;
+            --secondary: #15803d;
+            --secondary-dark: #166534;
+            --light: #f8fafc;
+            --border: #e2e8f0;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1rem 2rem;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header.active {
+            display: flex;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .btn-header {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+
+        .btn-header:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            max-width: 420px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 2rem 1rem;
+            text-align: center;
+            color: white;
+        }
+
+        .login-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-form {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-dark);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .fields-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .field-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .field-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .field-header {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+        }
+
+        .field-header.primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        }
+
+        .field-body {
+            padding: 1.5rem;
+        }
+
+        .field-body h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .booking-item {
+            background: #f8fafc;
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.pending {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        .admin-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .admin-card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stat-box {
+            background: #fef2f2;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
+
+        .back-link {
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            background: none;
+            border: none;
+        }
+
+        .back-link:hover {
+            color: var(--primary-dark);
+        }
+
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: var(--primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            animation: slideIn 0.3s;
+            z-index: 200;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        table thead {
+            background: #f8fafc;
+        }
+
+        table th {
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+
+        table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .btn-small {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+        }
+
+        .btn-success {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-success:hover {
+            background: var(--secondary-dark);
+        }
+
+        .btn-danger {
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-danger:hover {
+            background: var(--primary-dark);
+        }
+
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .admin-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .header { flex-wrap: wrap; }
+            .header-actions { gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header" id="header">
+        <div class="header-brand">
+            🎾 Facciamo Rete V3
+        </div>
+        <div class="header-actions">
+            <span id="headerUser" style="font-size: 0.875rem;"></span>
+            <button class="btn-header" onclick="showPage('home')">🏠 Home</button>
+            <button class="btn-header" onclick="showPage('profile')">👤 Profilo</button>
+            <button class="btn-header" id="adminBtn" style="display:none;" onclick="showPage('admin')">⚙️ Admin</button>
+            <button class="btn-header" onclick="handleLogout()">🚪 Esci</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Login Page -->
+        <div class="page active" id="loginPage">
+            <div class="login-container">
+                <div class="login-box">
+                    <div class="login-header">
+                        <h1>🎾 Facciamo Rete V3</h1>
+                        <p>Prenota i campi del Comune</p>
+                    </div>
+                    <div class="login-form">
+                        <div class="tabs">
+                            <button class="tab-btn active" onclick="switchTab('login', event)">Accedi</button>
+                            <button class="tab-btn" onclick="switchTab('register', event)">Registrati</button>
+                        </div>
+
+                        <div id="loginTab">
+                            <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--primary);">Accedi</h2>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="loginEmail" value="demo@facciamolrete.it">
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" id="loginPassword" value="demo123">
+                            </div>
+                            <button class="btn btn-primary" onclick="handleLogin()">Accedi</button>
+                            <div style="margin-top: 1.5rem; padding: 1rem; background: #fef2f2; border-radius: 8px; border-left: 4px solid var(--primary); font-size: 0.875rem;">
+                                <p><strong>Demo Utente:</strong></p>
+                                <p>demo@facciamolrete.it / demo123</p>
+                                <hr style="margin: 0.75rem 0; opacity: 0.3; border: none; border-top: 1px solid rgba(0,0,0,0.1);">
+                                <p style="margin-top: 0.75rem;"><strong>Demo Admin:</strong></p>
+                                <p>admin@facciamolrete.it / admin123</p>
+                            </div>
+                        </div>
+
+                        <div id="registerTab" style="display: none;">
+                            <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--primary);">Registrati</h2>
+                            <div class="form-group">
+                                <label>Nome Completo</label>
+                                <input type="text" id="registerName">
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="registerEmail">
+                            </div>
+                            <div class="form-group">
+                                <label>Password (almeno 6 caratteri)</label>
+                                <input type="password" id="registerPassword">
+                            </div>
+                            <button class="btn btn-primary" onclick="handleRegister()">Registrati</button>
+                            <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-light); text-align: center;">
+                                ✅ La registrazione sarà sottoposta a approvazione dell'admin
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Home Page -->
+        <div class="page" id="homePage">
+            <div class="fields-grid" id="fieldsGrid"></div>
+        </div>
+
+        <!-- Booking Page -->
+        <div class="page" id="bookingPage">
+            <button class="back-link" onclick="showPage('home')">← Torna alla Home</button>
+            <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; padding: 2rem; box-shadow: var(--shadow-lg);">
+                <h2 style="font-size: 1.75rem; margin-bottom: 2rem; color: var(--primary);">Prenota il Tuo Campo</h2>
+                
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="font-weight: 600; margin-bottom: 1rem;">1. Scegli la Data</h3>
+                    <input type="date" id="bookingDate" style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px;">
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="font-weight: 600; margin-bottom: 1rem;">2. Scegli l'Ora</h3>
+                    <select id="bookingHour"></select>
+                </div>
+
+                <div style="margin-bottom: 2rem; background: #fef2f2; border-left: 4px solid var(--primary); padding: 1.5rem; border-radius: 8px;">
+                    <h3 style="margin-bottom: 1rem;">Riepilogo</h3>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.875rem;">
+                        <span>Campo:</span>
+                        <span id="sumField">-</span>
+                    </div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary); margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);" id="sumPrice">€ 1,00</div>
+                </div>
+
+                <button class="btn btn-primary" style="font-size: 1.125rem;" onclick="confirmBooking()">Prenota Ora</button>
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div class="page" id="profilePage">
+            <button class="back-link" onclick="showPage('home')">← Torna alla Home</button>
+            <div style="max-width: 900px; margin: 0 auto; background: white; border-radius: 12px; padding: 2rem; box-shadow: var(--shadow-lg);">
+                <h2 style="font-size: 1.75rem; margin-bottom: 2rem; color: var(--primary);">Le Mie Prenotazioni</h2>
+                <div id="userBookings"></div>
+            </div>
+        </div>
+
+        <!-- Admin Page -->
+        <div class="page" id="adminPage">
+            <button class="back-link" onclick="showPage('home')">← Torna alla Home</button>
+            <div class="admin-grid">
+                <div class="admin-card">
+                    <h2>Approvazioni in Sospeso</h2>
+                    <div id="pendingUsers"></div>
+                </div>
+
+                <div class="admin-card">
+                    <h2>Tutte le Prenotazioni (<span id="adminBookingCount">0</span>)</h2>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Utente</th>
+                                    <th>Campo</th>
+                                    <th>Data</th>
+                                    <th>Ora</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminBookingsList"></tbody>
+                        </table>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-value" id="statBookings">0</div>
+                            <div class="stat-label">Prenotazioni</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="statUsers">0</div>
+                            <div class="stat-label">Utenti Approvati</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="statPending">0</div>
+                            <div class="stat-label">In Attesa</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="exportCSV()" style="width: 100%; margin-top: 1rem;">📥 Esporta CSV</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CREDENZIALI SUPABASE
+        const SUPABASE_URL = 'https://wnfbftaadlninirazbqg.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InduZmJmdGFhZGxuaW5pcmF6YnFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NjQ5MjIsImV4cCI6MjA5MjQ0MDkyMn0.wFpPUbHOVp_PAZy7jXMiIPN5E5Ai4wYpqddStnUeS6g';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const app = {
+            currentUser: null,
+            isAdmin: false,
+            bookings: [],
+            users: []
+        };
+
+        const fields = {
+            field1: { name: 'Campo 1 - Calcetto', emoji: '⚽' },
+            field2: { name: 'Campo 2 - Tennis', emoji: '🎾' },
+            field3: { name: 'Campo 3 - Basket', emoji: '🏀' }
+        };
+
+        async function init() {
+            try {
+                renderHours();
+                setMinDate();
+                setupRealtimeListeners();
+                createDemoUsers();
+            } catch (e) {
+                console.error('Init error:', e);
+            }
+        }
+
+        function createDemoUsers() {
+            supabase.from('users').insert([
+                { email: 'demo@facciamolrete.it', name: 'Demo Utente', password: 'demo123', approved: true },
+                { email: 'admin@facciamolrete.it', name: 'Admin', password: 'admin123', approved: true, is_admin: true }
+            ]).then(() => {}).catch(() => {});
+        }
+
+        function setupRealtimeListeners() {
+            supabase.channel('users-channel')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, (payload) => {
+                    showNotification('👤 Nuovo utente registrato!');
+                    loadData();
+                })
+                .subscribe();
+
+            supabase.channel('bookings-channel')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, (payload) => {
+                    showNotification('📅 Nuova prenotazione!');
+                    loadData();
+                })
+                .subscribe();
+        }
+
+        function showNotification(message) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        function switchTab(tab, event) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('loginTab').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('registerTab').style.display = tab === 'register' ? 'block' : 'none';
+        }
+
+        async function handleLogin() {
+            try {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('email', email)
+                    .eq('password', password)
+                    .single();
+
+                if (error || !data) {
+                    alert('❌ Email o password non validi');
+                    return;
+                }
+
+                if (!data.approved) {
+                    alert('⏳ La tua registrazione è in sospeso di approvazione');
+                    return;
+                }
+
+                app.currentUser = data;
+                app.isAdmin = data.is_admin;
+                document.getElementById('headerUser').textContent = data.name;
+                document.getElementById('header').classList.add('active');
+                document.getElementById('adminBtn').style.display = app.isAdmin ? 'block' : 'none';
+                renderFields();
+                loadData();
+                showPage('home');
+            } catch (e) {
+                console.error('Login error:', e);
+                alert('❌ Errore di connessione');
+            }
+        }
+
+        async function handleRegister() {
+            try {
+                const name = document.getElementById('registerName').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+
+                if (!name || !email || !password) {
+                    alert('❌ Compila tutti i campi');
+                    return;
+                }
+
+                if (password.length < 6) {
+                    alert('❌ Password almeno 6 caratteri');
+                    return;
+                }
+
+                const { error } = await supabase
+                    .from('users')
+                    .insert([{ email, name, password, approved: false, is_admin: false }]);
+
+                if (error) {
+                    alert('❌ Errore: ' + error.message);
+                    return;
+                }
+
+                alert('✅ Registrazione completata! Attendi l\'approvazione dell\'admin');
+                document.getElementById('registerName').value = '';
+                document.getElementById('registerEmail').value = '';
+                document.getElementById('registerPassword').value = '';
+                document.querySelector('.tab-btn').click();
+            } catch (e) {
+                console.error('Register error:', e);
+                alert('❌ Errore di connessione');
+            }
+        }
+
+        function handleLogout() {
+            app.currentUser = null;
+            app.isAdmin = false;
+            document.getElementById('header').classList.remove('active');
+            showPage('login');
+        }
+
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(page + 'Page').classList.add('active');
+            
+            if (page === 'profile') renderProfile();
+            if (page === 'admin') renderAdmin();
+        }
+
+        function renderFields() {
+            const html = Object.entries(fields).map(([key, field]) => `
+                <div class="field-card" onclick="startBooking('${key}')">
+                    <div class="field-header ${key === 'field1' || key === 'field3' ? 'primary' : ''}">
+                        ${field.emoji}
+                    </div>
+                    <div class="field-body">
+                        <h3>${field.name}</h3>
+                        <p style="color: var(--text-light); margin: 1rem 0;">€ 1,00 / ora</p>
+                        <button class="btn ${key === 'field1' || key === 'field3' ? 'btn-primary' : 'btn-secondary'}" style="width: 100%; padding: 0.75rem;" onclick="startBooking('${key}')">Prenota Ora</button>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('fieldsGrid').innerHTML = html;
+        }
+
+        function startBooking(field) {
+            window.selectedField = field;
+            document.getElementById('sumField').textContent = fields[field].name;
+            showPage('booking');
+        }
+
+        function setMinDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('bookingDate').min = today;
+            document.getElementById('bookingDate').value = today;
+        }
+
+        function renderHours() {
+            const html = Array.from({length: 15}, (_, i) => i + 8)
+                .map(h => `<option value="${h}">${h}:00 - ${h + 1}:00</option>`)
+                .join('');
+            document.getElementById('bookingHour').innerHTML = html;
+        }
+
+        async function confirmBooking() {
+            try {
+                const date = document.getElementById('bookingDate').value;
+                const hour = document.getElementById('bookingHour').value;
+
+                if (!date || !hour) {
+                    alert('❌ Seleziona data e ora');
+                    return;
+                }
+
+                const { error } = await supabase
+                    .from('bookings')
+                    .insert([{
+                        user_id: app.currentUser.id,
+                        field: window.selectedField,
+                        date,
+                        hour: parseInt(hour),
+                        price: 1.00
+                    }]);
+
+                if (error) {
+                    alert('❌ Errore: ' + error.message);
+                    return;
+                }
+
+                alert('✅ Prenotazione confermata!');
+                showPage('home');
+            } catch (e) {
+                console.error('Booking error:', e);
+                alert('❌ Errore di connessione');
+            }
+        }
+
+        async function renderProfile() {
+            try {
+                const { data: bookings } = await supabase
+                    .from('bookings')
+                    .select('*')
+                    .eq('user_id', app.currentUser.id);
+
+                if (!bookings || bookings.length === 0) {
+                    document.getElementById('userBookings').innerHTML = '<p style="text-align: center; color: var(--text-light);">📅 Nessuna prenotazione</p>';
+                    return;
+                }
+
+                const html = bookings.map(b => `
+                    <div class="booking-item">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div>
+                                <p style="font-size: 0.75rem; color: var(--text-light); font-weight: 600; text-transform: uppercase;">CAMPO</p>
+                                <p style="font-size: 1rem; font-weight: bold;">${fields[b.field].emoji} ${fields[b.field].name}</p>
+                                <p style="font-size: 0.75rem; color: var(--text-light); margin-top: 0.5rem;">DATA: ${b.date} - ORA: ${b.hour}:00</p>
+                            </div>
+                            <span class="badge">✅ Confermata</span>
+                        </div>
+                    </div>
+                `).join('');
+                document.getElementById('userBookings').innerHTML = html;
+            } catch (e) {
+                console.error('Profile error:', e);
+            }
+        }
+
+        async function loadData() {
+            try {
+                const { data: bookings } = await supabase.from('bookings').select('*');
+                const { data: users } = await supabase.from('users').select('*');
+                
+                app.bookings = bookings || [];
+                app.users = users || [];
+            } catch (e) {
+                console.error('Load data error:', e);
+            }
+        }
+
+        async function renderAdmin() {
+            try {
+                const { data: pendingUsers } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('approved', false);
+
+                const pendingHtml = !pendingUsers || pendingUsers.length === 0 
+                    ? '<p style="text-align: center; color: var(--text-light);">✅ Nessun utente in sospeso</p>'
+                    : pendingUsers.map(u => `
+                        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <p style="font-weight: bold;">${u.name}</p>
+                            <p style="font-size: 0.875rem; color: var(--text-light);">${u.email}</p>
+                            <button class="btn btn-success btn-small" onclick="approveUser('${u.id}')">✅ Approva</button>
+                            <button class="btn btn-danger btn-small" onclick="rejectUser('${u.id}')">❌ Rifiuta</button>
+                        </div>
+                    `).join('');
+
+                document.getElementById('pendingUsers').innerHTML = pendingHtml;
+
+                await loadData();
+                
+                const bookingsHtml = app.bookings.map(b => {
+                    const user = app.users.find(u => u.id === b.user_id);
+                    return `
+                        <tr>
+                            <td>${user ? user.name : 'Sconosciuto'}</td>
+                            <td>${fields[b.field].emoji} ${fields[b.field].name}</td>
+                            <td>${b.date}</td>
+                            <td>${b.hour}:00</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                document.getElementById('adminBookingsList').innerHTML = bookingsHtml;
+                document.getElementById('adminBookingCount').textContent = app.bookings.length;
+                document.getElementById('statBookings').textContent = app.bookings.length;
+                document.getElementById('statUsers').textContent = app.users.filter(u => u.approved).length;
+                document.getElementById('statPending').textContent = app.users.filter(u => !u.approved).length;
+            } catch (e) {
+                console.error('Admin error:', e);
+            }
+        }
+
+        async function approveUser(userId) {
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ approved: true })
+                    .eq('id', userId);
+
+                if (error) {
+                    alert('❌ Errore');
+                    return;
+                }
+
+                showNotification('✅ Utente approvato!');
+                renderAdmin();
+            } catch (e) {
+                console.error('Approve error:', e);
+            }
+        }
+
+        async function rejectUser(userId) {
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .delete()
+                    .eq('id', userId);
+
+                if (error) {
+                    alert('❌ Errore');
+                    return;
+                }
+
+                showNotification('❌ Utente rifiutato');
+                renderAdmin();
+            } catch (e) {
+                console.error('Reject error:', e);
+            }
+        }
+
+        async function exportCSV() {
+            try {
+                let csv = 'Data,Ora,Campo,Utente\n';
+                app.bookings.forEach(b => {
+                    const user = app.users.find(u => u.id === b.user_id);
+                    csv += `${b.date},${b.hour}:00,${fields[b.field].name},${user ? user.name : 'Sconosciuto'}\n`;
+                });
+
+                const blob = new Blob([csv], {type: 'text/csv'});
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `prenotazioni_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+            } catch (e) {
+                console.error('Export error:', e);
+            }
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
