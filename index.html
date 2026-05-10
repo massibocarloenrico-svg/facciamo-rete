@@ -334,6 +334,31 @@
     .container { padding: 1rem; }
     .payment-grid { grid-template-columns: 1fr; }
   }
+
+  .users-table-wrap { margin-top: 1.5rem; }
+  .users-table-wrap h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700; font-size: 1rem;
+    color: var(--red); margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem; border-bottom: 2px solid var(--border);
+  }
+  .user-row {
+    display: flex; justify-content: space-between;
+    align-items: center; padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem; flex-wrap: wrap; gap: 0.5rem;
+  }
+  .user-row:last-child { border-bottom: none; }
+  .user-row:hover { background: var(--light); border-radius: 6px; }
+  .user-name { font-weight: 700; color: var(--text); }
+  .user-email { color: var(--text-light); font-size: 0.78rem; }
+  .btn-remove-user {
+    padding: 0.3rem 0.65rem; background: none;
+    border: 1px solid #f5c6c6; color: var(--red);
+    border-radius: 6px; font-size: 0.72rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-remove-user:hover { background: var(--red); color: white; }
 </style>
 </head>
 <body>
@@ -713,6 +738,30 @@
     document.getElementById('stBookings').textContent = data.bookings.length;
     document.getElementById('stUsers').textContent = approvedCount;
     document.getElementById('stRevenue').textContent = '€' + revenue.toFixed(0);
+
+    // Lista utenti approvati
+    const approvedUsers = Object.values(data.users).filter(u => u.approved);
+    // Aggiungi anche i demo users
+    const demoList = Object.values(DEMO_USERS);
+    const allApproved = [...demoList, ...approvedUsers];
+
+    document.getElementById('usersCount').textContent = allApproved.length;
+
+    const usersHtml = allApproved.length
+      ? allApproved.map(u => `
+        <div class="user-row">
+          <div>
+            <div class="user-name">${u.name}</div>
+            <div class="user-email">${u.email}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <span class="badge-ok">${u.isAdmin ? '👑 Admin' : '✅ Attivo'}</span>
+            ${!u.isAdmin ? `<button class="btn-remove-user" onclick="removeUser('${u.id}')">🗑 Rimuovi</button>` : ''}
+          </div>
+        </div>`).join('')
+      : '<p style="text-align:center;color:var(--text-light);padding:1rem;">Nessun utente</p>';
+
+    document.getElementById('approvedUsersList').innerHTML = usersHtml;
   }
 
   function approveUser(id) {
@@ -728,6 +777,15 @@
     delete data.users[id];
     save(data);
     showNotification('❌ Utente rifiutato');
+    renderAdmin();
+  }
+
+  function removeUser(id) {
+    if (!confirm('Rimuovere questo utente?')) return;
+    const data = load();
+    delete data.users[id];
+    save(data);
+    showNotification('🗑 Utente rimosso');
     renderAdmin();
   }
 
