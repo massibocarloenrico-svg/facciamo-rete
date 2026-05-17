@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Facciamo Rete - Pro Loco Giovani Exilles</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;500;600&display=swap');
 
@@ -102,6 +103,55 @@
   }
   .demo-box strong { color: var(--red); }
 
+  /* CALENDAR */
+  .calendar-section { background: white; border-radius: var(--radius); padding: 1.75rem; box-shadow: var(--shadow); margin-bottom: 2rem; }
+  .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+  .calendar-title { font-family: "Montserrat", sans-serif; font-weight: 800; font-size: 1.4rem; color: var(--red); }
+  .calendar-nav { display: flex; gap: 0.75rem; align-items: center; }
+  .cal-btn { padding: 0.5rem 1rem; background: var(--red); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+  .cal-month { font-family: "Montserrat", sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--text); min-width: 150px; text-align: center; }
+
+  .field-tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); }
+  .field-tab {
+    padding: 0.75rem 1.25rem;
+    background: none; border: none;
+    font-family: "Montserrat", sans-serif; font-weight: 700; font-size: 0.95rem;
+    color: var(--text-light); cursor: pointer;
+    border-bottom: 3px solid transparent; margin-bottom: -2px;
+  }
+  .field-tab.active { color: var(--red); border-bottom-color: var(--red); }
+
+  .cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .cal-day-header { font-weight: 700; text-align: center; padding: 0.5rem; font-size: 0.8rem; text-transform: uppercase; color: var(--text-light); }
+  .cal-day {
+    padding: 0.75rem; background: var(--light); border-radius: 8px; text-align: center;
+    font-size: 0.85rem; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
+  }
+  .cal-day:hover { border-color: var(--red); }
+  .cal-day.has-booking { background: #ffebee; border-color: var(--red); font-weight: 700; }
+  .cal-day.empty { color: #ccc; }
+
+  .slots-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem;
+  }
+  .slot {
+    padding: 0.75rem; border-radius: 8px; text-align: center; font-size: 0.8rem;
+    border: 2px solid var(--border); cursor: pointer; transition: all 0.2s;
+    font-weight: 600;
+  }
+  .slot.free { background: #d5f5e3; color: #1e8449; border-color: #1e8449; }
+  .slot.occupied { background: #ffebee; color: var(--red); border-color: var(--red); cursor: default; }
+  .slot.free:hover { box-shadow: 0 4px 12px rgba(30,132,73,0.3); }
+
+  .slot-info { font-size: 0.7rem; margin-top: 0.25rem; }
+
+  .legend { display: flex; gap: 1.5rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid var(--border); flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+  .legend-color { width: 20px; height: 20px; border-radius: 4px; }
+
   /* HOME */
   .page-title { font-family: "Montserrat", sans-serif; font-weight: 800; font-size: 1.5rem; margin-bottom: 0.25rem; }
   .page-sub { color: var(--text-light); font-size: 0.875rem; margin-bottom: 1.5rem; }
@@ -176,6 +226,13 @@
   .btn-remove { background: none; border: 1px solid #f5c6c6; color: var(--red); padding: 0.3rem 0.65rem; border-radius: 6px; font-size: 0.72rem; font-weight: 600; cursor: pointer; }
   .btn-remove:hover { background: var(--red); color: white; }
 
+  .password-section { background: #fef9f9; border: 2px solid #f5c6c6; border-radius: 10px; padding: 1.25rem; margin-top: 1.5rem; }
+  .password-section h3 { font-family: "Montserrat", sans-serif; font-weight: 700; font-size: 1rem; color: var(--red); margin-bottom: 1rem; }
+  .password-form { display: grid; gap: 0.75rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .btn-change-pwd { padding: 0.65rem 1.25rem; background: var(--red); color: white; border: none; border-radius: 8px; font-family: "Montserrat", sans-serif; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
+  .btn-change-pwd:hover { background: var(--red-dark); }
+
   .btn-export { width: 100%; margin-top: 1rem; padding: 0.7rem; background: var(--green); color: white; border: none; border-radius: 8px; font-family: "Montserrat", sans-serif; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
   .btn-export:hover { background: var(--green-dark); }
 
@@ -192,6 +249,8 @@
     .stats-row { grid-template-columns: 1fr; }
     .container { padding: 1rem; }
     .payment-grid { grid-template-columns: 1fr; }
+    .field-tabs { flex-wrap: wrap; }
+    .form-row { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -251,6 +310,39 @@
     </div>
   </div>
 
+  <!-- CALENDARIO PUBBLICO -->
+  <div class="page active" id="calendarPage">
+    <div class="calendar-section">
+      <div class="calendar-header">
+        <div class="calendar-title">📅 Disponibilità Campi</div>
+        <div class="calendar-nav">
+          <button class="cal-btn" onclick="prevMonth()">← Mese Precedente</button>
+          <div class="cal-month" id="calMonth"></div>
+          <button class="cal-btn" onclick="nextMonth()">Mese Successivo →</button>
+        </div>
+      </div>
+
+      <div class="field-tabs">
+        <button class="field-tab active" onclick="switchFieldTab('field1', event)">⚽ Campo 1 - Calcetto & Tennis</button>
+        <button class="field-tab" onclick="switchFieldTab('field2', event)">🏀 Campo 2 - Basket & Pallavolo</button>
+      </div>
+
+      <div id="calendarGrid" class="cal-grid"></div>
+
+      <div id="slotsView" style="display:none;">
+        <h3 style="margin-bottom: 1rem; font-weight: 700;">Orari disponibili: <span id="selectedDateDisplay"></span></h3>
+        <div class="slots-grid" id="slotsGrid"></div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-color" style="background: #d5f5e3;"></div> Slot libero</div>
+        <div class="legend-item"><div class="legend-color" style="background: #ffebee;"></div> Slot occupato</div>
+      </div>
+
+      <button class="btn-main" style="margin-top: 1.5rem; max-width: 300px;" onclick="goToLoginForBooking()">Accedi per Prenotare →</button>
+    </div>
+  </div>
+
   <!-- HOME -->
   <div class="page" id="homePage">
     <div class="page-title">Prenota il tuo campo 🎾</div>
@@ -306,6 +398,23 @@
           <h3>👥 Utenti Registrati (<span id="usersCount">0</span>)</h3>
           <div id="approvedUsersList"></div>
         </div>
+        <div class="password-section">
+          <h3>🔐 Cambio Password</h3>
+          <div class="password-form">
+            <div>
+              <label class="form-group" style="margin: 0 0 0.5rem 0;"><span style="display: block; margin-bottom: 0.4rem;">Scegli Utente</span>
+                <select id="pwdUserSelect" style="width: 100%; padding: 0.6rem;">
+                  <option value="">-- Seleziona utente --</option>
+                </select>
+              </label>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label style="display: block; margin-bottom: 0.4rem;">Nuova Password</label>
+              <input type="password" id="newPassword" placeholder="Nuova password (min. 6 caratteri)">
+            </div>
+            <button class="btn-change-pwd" onclick="changeUserPassword()">🔐 Cambia Password</button>
+          </div>
+        </div>
       </div>
       <div class="wide-card">
         <h2>📋 Prenotazioni (<span id="adminCount">0</span>)</h2>
@@ -333,6 +442,12 @@
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1Y2p3Z3B6ZGxtZmZzcHB2aGRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MzA4ODcsImV4cCI6MjA5NDAwNjg4N30.z8L953wlGPngXyT6Ok_LK6n6Ah7B3NdbSBnEI_CFwo4';
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+  // EMAILJS
+  const EMAILJS_SERVICE  = 'service_9hm09kz';
+  const EMAILJS_TEMPLATE = 'template_bujlikw';
+  const EMAILJS_KEY      = 'VDn4E6fkJ8kp_avl2';
+  emailjs.init(EMAILJS_KEY);
+
   const app = { currentUser: null, isAdmin: false };
 
   const FIELDS = {
@@ -340,17 +455,54 @@
     field2: { name: 'Campo 2', sport: 'Basket & Pallavolo', emoji: '🏀', color: 'green' }
   };
 
+  // CALENDAR STATE
+  let currentMonth = new Date();
+  let selectedField = 'field1';
+  let selectedDate = null;
+  let allBookings = [];
+
   // REALTIME
   function setupRealtime() {
     db.channel('users').on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
       showNotification('👤 Nuovo utente registrato!');
       if (app.isAdmin) renderAdmin();
+      renderCalendar();
+      loadAllBookings();
     }).subscribe();
 
     db.channel('bookings').on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
       showNotification('📅 Nuova prenotazione!');
       if (app.isAdmin) renderAdmin();
+      renderCalendar();
+      loadAllBookings();
     }).subscribe();
+  }
+
+  async function sendConfirmEmail(name, email) {
+    try {
+      await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
+        to_name: name,
+        to_email: email,
+      });
+      console.log('✅ Email inviata a ' + email);
+    } catch(e) {
+      console.error('❌ Errore email:', e);
+    }
+  }
+
+  async function sendApprovalEmail(userId) {
+    try {
+      const { data: user } = await db.from('users').select('*').eq('id', userId).single();
+      if (!user) return;
+      await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
+        to_name: user.name,
+        to_email: user.email,
+        message_type: 'approval'
+      });
+      console.log('✅ Email approvazione inviata a ' + user.email);
+    } catch(e) {
+      console.error('❌ Errore email approvazione:', e);
+    }
   }
 
   function switchTab(tab, e) {
@@ -373,6 +525,7 @@
     document.getElementById('adminBtn').style.display = app.isAdmin ? 'block' : 'none';
     renderFields();
     showPage('home');
+    if (app.isAdmin) loadUsersForPasswordChange();
   }
 
   async function handleRegister() {
@@ -383,7 +536,8 @@
     if (password.length < 6) { alert('❌ Password minimo 6 caratteri'); return; }
     const { error } = await db.from('users').insert([{ email, name, password, approved: false, is_admin: false }]);
     if (error) { alert('❌ Errore: ' + error.message); return; }
-    alert('✅ Registrazione inviata!\n\nAttendi approvazione dell\'admin per accedere.');
+    await sendConfirmEmail(name, email);
+    alert('✅ Registrazione inviata!\n\nTi abbiamo inviato una email di conferma.\nAttendi approvazione dell\'admin per accedere.');
     document.getElementById('regName').value = '';
     document.getElementById('regEmail').value = '';
     document.getElementById('regPassword').value = '';
@@ -393,12 +547,17 @@
   function handleLogout() {
     app.currentUser = null; app.isAdmin = false;
     document.getElementById('header').classList.remove('active');
-    showPage('login');
+    showPage('loginPage');
+    showPage('calendarPage');
   }
 
   function showPage(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(page + 'Page').classList.add('active');
+    if (page === 'loginPage' || page === 'calendarPage') {
+      document.getElementById(page).classList.add('active');
+    } else {
+      document.getElementById(page + 'Page').classList.add('active');
+    }
     if (page === 'profile') renderProfile();
     if (page === 'admin') renderAdmin();
   }
@@ -414,6 +573,92 @@
           <button class="btn-book ${f.color === 'green' ? 'green' : ''}">Prenota Ora →</button>
         </div>
       </div>`).join('');
+  }
+
+  // CALENDAR FUNCTIONS
+  async function loadAllBookings() {
+    const { data } = await db.from('bookings').select('*');
+    allBookings = data || [];
+  }
+
+  function renderCalendar() {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    document.getElementById('calMonth').textContent = currentMonth.toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+
+    let html = `<div class="cal-day-header">Lun</div>
+    <div class="cal-day-header">Mar</div>
+    <div class="cal-day-header">Mer</div>
+    <div class="cal-day-header">Gio</div>
+    <div class="cal-day-header">Ven</div>
+    <div class="cal-day-header">Sab</div>
+    <div class="cal-day-header">Dom</div>`;
+
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      html += '<div class="cal-day empty"></div>';
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+      const hasBooking = allBookings.some(b => b.field === selectedField && b.date === dateStr);
+      const classList = hasBooking ? 'has-booking' : '';
+      html += `<div class="cal-day ${classList}" onclick="selectDate('${dateStr}')">${day}</div>`;
+    }
+
+    document.getElementById('calendarGrid').innerHTML = html;
+  }
+
+  function switchFieldTab(field, e) {
+    document.querySelectorAll('.field-tab').forEach(t => t.classList.remove('active'));
+    e.target.classList.add('active');
+    selectedField = field;
+    selectedDate = null;
+    document.getElementById('slotsView').style.display = 'none';
+    renderCalendar();
+  }
+
+  function selectDate(dateStr) {
+    selectedDate = dateStr;
+    renderSlots(dateStr);
+    document.getElementById('slotsView').style.display = 'block';
+    document.getElementById('selectedDateDisplay').textContent = new Date(dateStr + 'T00:00:00').toLocaleString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function renderSlots(dateStr) {
+    let html = '';
+    for (let hour = 8; hour < 23; hour++) {
+      const isBooked = allBookings.some(b => b.field === selectedField && b.date === dateStr && b.hour === hour);
+      const status = isBooked ? 'occupied' : 'free';
+      html += `<div class="slot ${status}">
+        ${hour}:00 — ${hour + 1}:00
+        <div class="slot-info">${isBooked ? '❌ Occupato' : '✅ Libero'}</div>
+      </div>`;
+    }
+    document.getElementById('slotsGrid').innerHTML = html;
+  }
+
+  function prevMonth() {
+    currentMonth.setMonth(currentMonth.getMonth() - 1);
+    renderCalendar();
+  }
+
+  function nextMonth() {
+    currentMonth.setMonth(currentMonth.getMonth() + 1);
+    renderCalendar();
+  }
+
+  function goToLoginForBooking() {
+    if (!app.currentUser) {
+      alert('Accedi per prenotare il campo');
+      showPage('loginPage');
+    } else {
+      showPage('home');
+    }
   }
 
   let selField = 'field1', selPayment = 'paid';
@@ -499,8 +744,34 @@
     renderProfile();
   }
 
+  async function loadUsersForPasswordChange() {
+    const { data: users } = await db.from('users').select('*').eq('approved', true);
+    const select = document.getElementById('pwdUserSelect');
+    select.innerHTML = '<option value="">-- Seleziona utente --</option>';
+    (users || []).forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.id;
+      opt.textContent = u.name + ' (' + u.email + ')';
+      select.appendChild(opt);
+    });
+  }
+
+  async function changeUserPassword() {
+    const userId = document.getElementById('pwdUserSelect').value;
+    const newPassword = document.getElementById('newPassword').value;
+
+    if (!userId) { alert('❌ Seleziona un utente'); return; }
+    if (!newPassword || newPassword.length < 6) { alert('❌ Password minimo 6 caratteri'); return; }
+
+    const { error } = await db.from('users').update({ password: newPassword }).eq('id', userId);
+    if (error) { alert('❌ Errore: ' + error.message); return; }
+
+    showNotification('✅ Password aggiornata!');
+    document.getElementById('newPassword').value = '';
+    document.getElementById('pwdUserSelect').value = '';
+  }
+
   async function renderAdmin() {
-    // Approvazioni in sospeso
     const { data: pending } = await db.from('users').select('*').eq('approved', false);
     document.getElementById('pendingUsers').innerHTML = pending && pending.length
       ? pending.map(u => `
@@ -514,7 +785,6 @@
         </div>`).join('')
       : '<p style="text-align:center;color:var(--text-light);font-size:0.875rem;padding:1rem;">✅ Nessuna richiesta in sospeso</p>';
 
-    // Utenti approvati
     const { data: approved } = await db.from('users').select('*').eq('approved', true).order('created_at', { ascending: true });
     const allApproved = approved || [];
     document.getElementById('usersCount').textContent = allApproved.length;
@@ -532,7 +802,6 @@
         </div>`).join('')
       : '<p style="text-align:center;color:var(--text-light);padding:1rem;">Nessun utente</p>';
 
-    // Prenotazioni
     const { data: bookings } = await db.from('bookings').select('*, users(name)').order('created_at', { ascending: false });
     const bList = bookings || [];
     document.getElementById('adminList').innerHTML = bList.map(b => `
@@ -549,11 +818,14 @@
     document.getElementById('stBookings').textContent = bList.length;
     document.getElementById('stUsers').textContent = allApproved.length;
     document.getElementById('stRevenue').textContent = '€' + revenue.toFixed(0);
+
+    loadUsersForPasswordChange();
   }
 
   async function approveUser(id) {
     await db.from('users').update({ approved: true }).eq('id', id);
-    showNotification('✅ Utente approvato!');
+    await sendApprovalEmail(id);
+    showNotification('✅ Utente approvato! Email inviata!');
     renderAdmin();
   }
 
@@ -597,6 +869,8 @@
     setMinDate();
     renderHours();
     setupRealtime();
+    loadAllBookings();
+    renderCalendar();
   });
 </script>
 </body>
